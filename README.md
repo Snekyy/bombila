@@ -37,18 +37,12 @@
 
 ## Usage :
 
-usage: bomber.py [-h] [-t TARGET]
+bomber.py [-h] [-t TARGET] [-s SMS]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -t TARGET, --target TARGET            target phone number for bombing
+  -t TARGET, --target TARGET
+                        target phone number for bombing
+  -s SMS, --sms SMS     sms count for bombing
 
-Example: ./bomber.py -t 79200112248
-
-
-Around 70% of this code was taken from impulse - https://github.com/LimerBoy/Impulse
-
-* Special *
-In debian gnu/linux you should only do 5 steps, in arch only 4 steps ,but in windows there are 6.
-also in linux you can do this only in your terminal, but in windows you should install this from web-sites and fuck your brain.
-This means that Linux is much better than Windows, therefore, as a linuxoid, I urge all Windows users to switch to Linux, but this is only one reason, and in fact there is much more. Thank you for attention :)
+Example: ./bomber.py -t 79877415069
