@@ -1,16 +1,19 @@
 import random
 import json
 
-def randomName():
-    with open("names.json", "r") as file:
-        name = random.choice(json.load(file)["names"])
-    return name
+def random_name():
+    with open("random_data.json", "r") as file:
+        names = json.load(file)["names"]
+    return random.choice(names)
 
-def randomEmail():
-    with open("emails.json", "r") as file:
-        email = random.choice(json.load(file)["emails"])
-    return randomName() + email
+def random_email():
+    with open("random_data.json", "r") as file:
+        emails = json.load(file)["emails"]
+    return random_name() + random_nums() + random.choice(emails)
 
-def randomPass():
-    password = randomName() + "1337"
-    return password
+def random_pass():
+    return random_name() + random_nums()
+
+def random_nums():
+    ls = [str(random.randint(0, 10)) for i in range(5)]
+    return "".join(ls)

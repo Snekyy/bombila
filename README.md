@@ -37,12 +37,12 @@
 
 ## Usage :
 
-bomber.py [-h] [-t TARGET] [-s SMS]
+usage: bomber.py [-h] [-t TARGET] [-s STOP_TIME] [-i INTERVAL]
+                 [--timeout TIMEOUT]
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -t TARGET, --target TARGET
-                        target phone number for bombing
-  -s SMS, --sms SMS     sms count for bombing
-
-Example: ./bomber.py -t 79877415069
+  -h, --help                            show this help message and exit
+  -t TARGET, --target TARGET            target phone number
+  -s STOP_TIME, --stop-time STOP_TIME   time in seconds
+  -i INTERVAL, --interval INTERVAL      intervals between requests in sec, default 0.1
+  --timeout TIMEOUT                     timeout for request in seconds, default 5

