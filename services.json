@@ -565,8 +565,8 @@
 			"data": "{'phone': '%phone%'}"
 		},
 		{
-            "url" : "https://moscow.rutaxi.ru/ajax_keycode.html",
-            "data" : "{'l': '%phone9%'}"
+            "url": "https://moscow.rutaxi.ru/ajax_keycode.html",
+            "data": "{'l': '%phone9%'}"
         }
 	]
 }
