@@ -4,9 +4,9 @@
 
 
 * git clone https://github.com/Snekyy/bombila.git
-* cd ./sms_bomber
+* cd ./bombila
 $ pip3 install -r requirements.txt
-* python3 bomber.py --help
+* python3 bombila.py --help
 
 ## Usage: 
 
@@ -29,6 +29,6 @@ optional arguments:
   --proxy               use proxy while bombing
   -v, --version         show program's version number and exit
 
-Usage example: ./bomber.py -p 79877771122 -t 20
+Usage example: ./bombila.py -p 79877771122 -t 20
 
 
