@@ -51,7 +51,7 @@ def cleanPhoneFromTrash(phone):
 # Creating parser obj
 parser = argparse.ArgumentParser(
     description="Ultimate sms bomber - bombila. Russian numbers only",
-    prog="bombila", epilog="Usage example: ./bomber.py -p 79877771122 -t 20")
+    prog="bombila", epilog="Usage example: python3 bombila.py -p 79877771122 -t 20")
 # Optional args
 parser.add_argument(
     "-p", "--phone", metavar="<phone>",
