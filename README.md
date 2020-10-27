@@ -5,7 +5,7 @@
 
 * git clone https://github.com/Snekyy/bombila.git
 * cd ./bombila
-$ pip3 install -r requirements.txt
+* pip3 install -r requirements.txt
 * python3 bombila.py --help
 
 ## Usage: 
