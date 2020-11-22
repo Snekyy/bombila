@@ -45,4 +45,4 @@ names = [
     "Sebastian"
 ]
 proxies = {"http" : "http://pyaviegl-dest:zzbuedi86fjx@209.127.191.180:80"}
-__version__ = "0.0.3 alpha"
+__version__ = "0.0.4 alpha"
