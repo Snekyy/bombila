@@ -7,7 +7,7 @@ cd ./bombila
 pip3 install -r requirements.txt
 python3 bombila.py --help
 ```
-## Usage: 
+## Usage:
 
 usage: bombila [-h] [-p <phone>] [-t <seconds>] [--threads <int>]
                [-i <seconds>] [-T <seconds>] [--proxy] [-v]
@@ -24,16 +24,20 @@ optional arguments:</br>
 
 
 ### Usage examples ###
+* Running without args:
+```bash
+python3 bombila.py
+```
 
 * Running with a minimum number of arguments:
 ```bash
 python3 bombila.py -p 79877771122 -t 20
 ```
-* Proxy (this will take random proxies from config.py file:
+* Proxy (this will take proxies from config.py file:
 ```bash
 python3 bombila.py -p 79877771122 -t 20 --proxy
 ```
-* Use all agrv:
+* Use all possible arguments:
 ```bash
 python3 bombila.py -p 79877771122 -t 20 --threads 100 -i 0.1 -T 3 --proxy
 ```
