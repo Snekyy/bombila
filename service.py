@@ -3,6 +3,7 @@ import requests
 # My modules
 import randomData
 
+
 class Service:
 
     def __init__(self, service, timeout, proxy):
@@ -36,28 +37,27 @@ class Service:
         }.items():
             if old in self.payload:
                 self.payload = self.payload.replace(old, new)
-        self.payload = json.loads(self.payload)
 
-    def _send_request(self):
+    def send_request(self):
         """ Creating session and request, check payload, send request. """
-        with requests.Session() as session:
-            request = requests.Request("POST", self.service["url"])
-            if self.datatype == "json":
-                request.json = self.payload
-            elif self.datatype == "data":
-                request.data = self.payload
-            else:
-                request.url = self.payload["url"]
-            request = request.prepare()
-            # Catching errors
-            try:
-                session.send(request, timeout=self.timeout, proxies=self.proxy)
-                print('Success - ' + self.domain_name)
-            except requests.exceptions.ReadTimeout:
-                print("FAIL - " + self.domain_name + " - ReadTimeout")
-            except requests.exceptions.ConnectTimeout:
-                print('FAIL - ' + self.domain_name + " - ConnectTimeout")
-            except requests.exceptions.ConnectionError:
-                print('FAIL - ' + self.domain_name + " - ConnectionError")
-            except Exception as err:
-                print(err)
+        session = requests.Session()
+        request = requests.Request("POST", self.service["url"])
+        self.payload = json.loads(self.payload)
+        if self.datatype == "json":
+            request.json = self.payload
+        elif self.datatype == "data":
+            request.data = self.payload
+        else:
+            request.url = self.payload["url"]
+        request = request.prepare()
+        # Catching errors
+        try:
+            session.send(request, timeout=self.timeout, proxies=self.proxy)
+        except requests.exceptions.ReadTimeout:
+            print(f"FAIL - {self.domain_name} - ReadTimeout")
+        except requests.exceptions.ConnectTimeout:
+            print(f"FAIL - {self.domain_name} - ConnectTimeout")
+        except requests.exceptions.ConnectionError:
+            print(f"FAIL - {self.domain_name} - ConnectionError")
+        except Exception as err:
+            print(err)

