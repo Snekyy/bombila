@@ -24,16 +24,16 @@ optional arguments:</br>
 
 
 ### Usage examples ###
+
 * Running without args:
 ```bash
 python3 bombila.py
 ```
-
-* Running with a minimum number of arguments:
+* Running with a minimal amount of arguments:
 ```bash
 python3 bombila.py -p 79877771122 -t 20
 ```
-* Proxy (this will take proxies from config.py file:
+* Proxy (this will take proxies from config.py file):
 ```bash
 python3 bombila.py -p 79877771122 -t 20 --proxy
 ```

@@ -50,14 +50,4 @@ class Service:
         else:
             request.url = self.payload["url"]
         request = request.prepare()
-        # Catching errors
-        try:
-            session.send(request, timeout=self.timeout, proxies=self.proxy)
-        except requests.exceptions.ReadTimeout:
-            print(f"FAIL - {self.domain_name} - ReadTimeout")
-        except requests.exceptions.ConnectTimeout:
-            print(f"FAIL - {self.domain_name} - ConnectTimeout")
-        except requests.exceptions.ConnectionError:
-            print(f"FAIL - {self.domain_name} - ConnectionError")
-        except Exception as err:
-            print(err)
+        session.send(request, timeout=self.timeout, proxies=self.proxy)

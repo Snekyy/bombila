@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-# TODO: PEP8 code style,
-#       country codes for other phone numbers,
-#       logging ( --verbose )
-
 import os
 import json
 import argparse
 import threading
 from itertools import cycle
 from time import time, sleep
+from requests import exceptions
 import conf.config as cfg
 from service import Service
 from randomData import shuffleServices
@@ -26,10 +23,15 @@ def startBomber():
         service.replace_data(phone)
         try:
             service.send_request()
-            print('Success - ' + service.domain_name)
+            print(f"Success - {service.domain_name}")
+        except exceptions.ReadTimeout:
+            print(f"FAIL - {service.domain_name} - ReadTimeout")
+        except exceptions.ConnectTimeout:
+            print(f"FAIL - {service.domain_name} - ConnectTimeout")
+        except exceptions.ConnectionError:
+            print(f"FAIL - {service.domain_name} - ConnectionError")
         except KeyboardInterrupt:
             threading._shutdown()
-
 
 
 # Creating parser obj
