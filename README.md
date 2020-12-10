@@ -9,19 +9,16 @@ python3 bombila.py --help
 ```
 ## Usage:
 
-usage: bombila [-h] [-p <phone>] [-t <seconds>] [--threads <int>]
-               [-i <seconds>] [-T <seconds>] [--proxy] [-v]
+bombila.py [-h] [-p <phone-number>] [-t <seconds>] [--threads <num>] [-T <seconds>] [--proxy] [--version]</br>
 
 optional arguments:</br>
-  -h, --help                             show this help message and exit</br>
-  -p <phone>, --phone <phone></br>       target's russian phone number, format no matters</br>
-  -t <seconds>, --stop_time <seconds>    bombing time in seconds</br>
-  --threads <int>                        threads count, more threads = more sms, (default: 50)</br>
-  -i <seconds>, --interval <seconds>     intervals between requests in sec, (default: 0)</br>
-  -T <seconds>, --timeout <seconds>      timeout for request in sec, (default: 3)</br>
-  --proxy                                use proxy while bombing</br>
-  -v, --version                          show program's version number and exit</br>
-
+  -h, --help            show this help message and exit</br>
+  -p <phone-number>, --phone <phone-number>			target's phone number, format no matters</br>
+  -t <seconds>, --time <seconds>		bombing time in seconds</br>
+  --threads <num>       bomber's threads count (default: 50)</br>
+  -T <seconds>, --timeout <seconds>      request's timeout, (default: 3)</br>
+  --proxy               use proxy from config.py file</br>
+  --version             show program's version number and exit
 
 ### Usage examples ###
 
@@ -29,15 +26,15 @@ optional arguments:</br>
 ```bash
 python3 bombila.py
 ```
-* Running with a minimal amount of arguments:
+* Running with minimal amount of args to run without questions:
 ```bash
 python3 bombila.py -p 79877771122 -t 20
 ```
-* Proxy (this will take proxies from config.py file):
+* Use proxy while bombing:
 ```bash
 python3 bombila.py -p 79877771122 -t 20 --proxy
 ```
 * Use all possible arguments:
 ```bash
-python3 bombila.py -p 79877771122 -t 20 --threads 100 -i 0.1 -T 3 --proxy
+python3 bombila.py -p 79877771122 -t 228 --threads 1337 -T 2 --proxy
 ```

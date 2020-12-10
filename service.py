@@ -1,7 +1,6 @@
 import json
 import requests
-# My modules
-import randomData
+import data_generator 
 
 
 class Service:
@@ -12,7 +11,9 @@ class Service:
         self.proxy = proxy
 
     def parse_data(self):
-        """ Parse data from service, creates datatype domain_name and payload vars """
+        """ Parse data from service. 
+            Creates datatype, domain_name and payload vars
+        """
         self.domain_name = self.service["url"].split('/')[2]
         if "data" in self.service:
             self.datatype = "data"
@@ -25,21 +26,23 @@ class Service:
             self.payload = json.dumps({"url": self.service["url"]})
 
     def replace_data(self, phone):
-        """ Replace data in payload """
+        """ Replace phone number and other random info
+            in service template if needed
+        """
         for old, new in {
             "'": '"',
             "%phone%": phone,
             "%phone9%": phone[1::],
-            "%name%": randomData.randomName(),
-            "%email%": randomData.randomEmail(),
-            "%password%": randomData.randomPass(),
-            "%token%": randomData.randomToken()
+            "%name%": data_generator.randomName(),
+            "%email%": data_generator.randomEmail(),
+            "%password%": data_generator.randomPass(),
+            "%token%": data_generator.randomToken()
         }.items():
             if old in self.payload:
                 self.payload = self.payload.replace(old, new)
 
     def send_request(self):
-        """ Creating session and request, check payload, send request. """
+        """ Send request for sms to server """
         session = requests.Session()
         request = requests.Request("POST", self.service["url"])
         self.payload = json.loads(self.payload)
@@ -51,3 +54,6 @@ class Service:
             request.url = self.payload["url"]
         request = request.prepare()
         session.send(request, timeout=self.timeout, proxies=self.proxy)
+
+
+
