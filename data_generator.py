@@ -2,8 +2,6 @@ import random
 import string
 import conf.config as cfg
 
-def shuffleServices(services):
-    random.shuffle(services)
 
 def randomName():
     names = cfg.names
