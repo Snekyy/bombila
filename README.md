@@ -38,3 +38,29 @@ python3 bombila.py -p 79877771122 -t 20 --proxy
 ```bash
 python3 bombila.py -p 79877771122 -t 228 --threads 1337 -T 2 --proxy
 ```
+
+### Change log
+
+#### 0.0.4.1
+	1. Fix shuffle of services(when they shuffle ones they changed for all threads)
+	2. Control+C kills script faster now
+
+#### 0.0.4
+	1. PEP8 code style
+	2. Proxy argument(--proxy). All requests will be send with proxy
+	3. ASCII art)
+	4. Project rename. "sms-bomber" --> "Bombila"
+
+#### 0.0.3
+	1. Multithreading. New script parametr - --threads(set bomber's threads count)
+	2. Services list update
+	3. Services shuffling for every thread of bomber
+
+#### 0.0.2
+	1. New arguments:
+		* timeout for request (-T/--timeout)
+		* time of bombing (-t/--stop-time
+		* interval between requests (-i/--interval)
+	
+#### 0.0.1
+	1. First commit
