@@ -78,7 +78,7 @@ def main():
     # Set stop time value
     args.time += time.time()
 
-    # Load and shuffle services list 
+    # Load services list 
     with open("services.json", "r") as file:
         services = json.load(file)["services"]
 

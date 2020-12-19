@@ -52,7 +52,7 @@ python3 bombila.py -p 79877771122 -t 228 --threads 1337 -T 2 --proxy
 	4. Project rename. "sms-bomber" --> "Bombila"
 
 #### 0.0.3
-	1. Multithreading. New script parametr - --threads(set bomber's threads count)
+	1. Multithreading. New script parameter: --threads(set bomber's threads count)
 	2. Services list update
 	3. Services shuffling for every thread of bomber
 
