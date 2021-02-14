@@ -1,5 +1,8 @@
 from colorama import Fore
 
+# set default value of default_country_code
+# only with numbers( without + sign)
+default_country_code = None
 
 # FUCK MY BRAIN AND THIS SHIT
 banner=f"""
@@ -50,4 +53,4 @@ proxies = {
     "http": "http://pyaviegl-dest:zzbuedi86fjx@209.127.191.180:80"
 }
 
-__version__ = "0.0.4.1"
+__version__ = "0.0.5"

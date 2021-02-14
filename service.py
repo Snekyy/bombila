@@ -1,20 +1,17 @@
 import json
 import requests
-import data_generator 
+import randomData 
 
 
 class Service:
-
-    def __init__(self, service, timeout, proxy):
+    def __init__(self, service, phone, timeout, proxy):
         self.service = service
+        self.phone = phone
         self.timeout = timeout
         self.proxy = proxy
 
-    def parse_data(self):
-        """ Parse data from service. 
-            Creates datatype, domain_name and payload vars
-        """
-        self.domain_name = self.service["url"].split('/')[2]
+
+    def __parse_data(self):
         if "data" in self.service:
             self.datatype = "data"
             self.payload = self.service["data"]
@@ -25,24 +22,30 @@ class Service:
             self.datatype = "url"
             self.payload = json.dumps({"url": self.service["url"]})
 
-    def replace_data(self, phone):
-        """ Replace phone number and other random info
-            in service template if needed
-        """
+
+    def __replace_data(self):
         for old, new in {
             "'": '"',
-            "%phone%": phone,
-            "%phone9%": phone[1::],
-            "%name%": data_generator.randomName(),
-            "%email%": data_generator.randomEmail(),
-            "%password%": data_generator.randomPass(),
-            "%token%": data_generator.randomToken()
+            "%phone%": self.phone,
+            "%phone9%": self.phone[1::],
+            "%name%": randomData.randomName(),
+            "%email%": randomData.randomEmail(),
+            "%password%": randomData.randomPass(),
+            "%token%": randomData.randomToken()
         }.items():
             if old in self.payload:
                 self.payload = self.payload.replace(old, new)
 
+
+    def get_domain_name(self):
+        """ Returns domain name of service. """
+        return self.service["url"].split('/')[2]
+
+
     def send_request(self):
-        """ Send request for sms to server """
+        """ Send sms request to the server of service. """
+        self.__parse_data()
+        self.__replace_data()
         session = requests.Session()
         request = requests.Request("POST", self.service["url"])
         self.payload = json.loads(self.payload)
@@ -54,6 +57,3 @@ class Service:
             request.url = self.payload["url"]
         request = request.prepare()
         session.send(request, timeout=self.timeout, proxies=self.proxy)
-
-
-
