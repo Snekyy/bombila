@@ -4,11 +4,10 @@ import randomData
 
 
 class Service:
-    def __init__(self, service, phone, timeout, proxy):
+    def __init__(self, service, phone, timeout):
         self.service = service
         self.phone = phone
         self.timeout = timeout
-        self.proxy = proxy
 
 
     def __parse_data(self):
@@ -56,4 +55,4 @@ class Service:
         else:
             request.url = self.payload["url"]
         request = request.prepare()
-        session.send(request, timeout=self.timeout, proxies=self.proxy)
+        session.send(request, timeout=self.timeout)

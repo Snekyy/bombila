@@ -1,7 +1,9 @@
 from colorama import Fore
 
 # set default value of default_country_code
-# only with numbers( without + sign)
+# only with numbers (without + sign)
+# Example:
+# default_country_code = 7
 default_country_code = None
 
 # FUCK MY BRAIN AND THIS SHIT
@@ -49,8 +51,3 @@ names = [
     "Quentin",
     "Sebastian"
 ]
-proxies = {
-    "http": "http://pyaviegl-dest:zzbuedi86fjx@209.127.191.180:80"
-}
-
-__version__ = "0.0.5"
