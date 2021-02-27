@@ -26,7 +26,6 @@ class Service:
         for old, new in {
             "'": '"',
             "%phone%": self.phone,
-            "%phone9%": self.phone[1::],
             "%name%": randomData.randomName(),
             "%email%": randomData.randomEmail(),
             "%password%": randomData.randomPass(),
