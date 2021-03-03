@@ -1,6 +1,28 @@
 import json
+import random
+import string
 import requests
-import randomData 
+import conf.config as cfg
+
+
+def randomName():
+    names = cfg.names
+    return random.choice(names)
+
+def randomEmail():
+    emails = cfg.emails
+    return randomName() + randomNums() + random.choice(emails)
+
+def randomPass():
+    return randomName() + randomNums()
+
+def randomNums():
+    ls = [str(random.randint(10, 99)) for i in range(2)]
+    return "".join(ls)
+
+def randomToken():
+    letters = string.ascii_letters + string.digits
+    return "".join(random.choice(letters) for i in range(30))
 
 
 class Service:
@@ -26,10 +48,10 @@ class Service:
         for old, new in {
             "'": '"',
             "%phone%": self.phone,
-            "%name%": randomData.randomName(),
-            "%email%": randomData.randomEmail(),
-            "%password%": randomData.randomPass(),
-            "%token%": randomData.randomToken()
+            "%name%": randomName(),
+            "%email%": randomEmail(),
+            "%password%": randomPass(),
+            "%token%": randomToken()
         }.items():
             if old in self.payload:
                 self.payload = self.payload.replace(old, new)
