@@ -3,12 +3,13 @@
 import json
 import time
 import random
-import conf.config as cfg
 from requests import exceptions
 from itertools import cycle
 from threading import Thread
 from argparse import ArgumentParser
-from service import Service
+import conf.config as cfg
+from utils.banner import banner
+from utils.service import Service
 
 
 def flood(args, services):
@@ -85,7 +86,7 @@ def main():
     with open("services.json", "r") as file:
         services = json.load(file)["services"]
 
-    print(cfg.banner)
+    print(banner)
    
     # Set stop time value
     args.time += time.time()
