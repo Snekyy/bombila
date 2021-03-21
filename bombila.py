@@ -8,8 +8,7 @@ from itertools import cycle
 from threading import Thread
 from argparse import ArgumentParser
 import conf.config as cfg
-from utils.banner import banner
-from utils.service import Service
+from service import Service
 
 
 def flood(args, services):
@@ -86,7 +85,7 @@ def main():
     with open("services.json", "r", encoding="utf-8", errors="ignore") as file:
         services = json.load(file)["services"]
 
-    print(banner)
+    print(cfg.banner)
    
     # Set stop time value
     args.time += time.time()
