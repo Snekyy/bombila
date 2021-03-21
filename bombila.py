@@ -83,7 +83,7 @@ def main():
     args.phone = args.country + args.phone 
 
     # Load services list 
-    with open("services.json", "r") as file:
+    with open("services.json", "r", encoding="utf-8", errors="ignore") as file:
         services = json.load(file)["services"]
 
     print(banner)
